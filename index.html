@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Mini App</title>
+    <title>Telegram Mini App - Show Telegram ID</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -13,6 +13,21 @@
             padding: 20px;
             background-color: #f7f7f7;
         }
+        .dashboard {
+            display: none;
+            margin-top: 20px;
+        }
+        .profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        img {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
         button {
             padding: 10px 20px;
             font-size: 16px;
@@ -21,6 +36,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 20px;
         }
         button:hover {
             background-color: #005fa3;
@@ -29,21 +45,57 @@
 </head>
 <body>
     <h1>Welcome to Telegram Mini App</h1>
-    <p>Click the button below to interact with Telegram.</p>
-    <button id="sendData">Send Data to Telegram</button>
+    <div class="dashboard" id="dashboard">
+        <div class="profile" id="profile">
+            <img id="photo" src="" alt="Profile Photo">
+            <h2 id="name"></h2>
+            <p id="username"></p>
+            <p id="telegramId" style="font-weight: bold; display: none;">Telegram ID: <span id="userId"></span></p>
+        </div>
+        <button id="showId">Show My Telegram ID</button>
+        <button id="logout">Logout</button>
+    </div>
+    <p id="loading">Authenticating...</p>
 
     <script>
-        // Initialize the WebApp object
         const tg = window.Telegram.WebApp;
 
-        // Expand the WebApp to full screen
         tg.expand();
 
-        // Handle button click
-        document.getElementById("sendData").addEventListener("click", () => {
-            const data = { message: "Hello from Mini App!" };
-            tg.sendData(JSON.stringify(data)); // Send data back to the bot
-            tg.close(); // Close the Mini App
+        const dashboard = document.getElementById("dashboard");
+        const loading = document.getElementById("loading");
+
+        async function init() {
+            const initData = tg.initData;
+            const urlParams = new URLSearchParams(initData);
+            const user = {
+                id: urlParams.get("id"),
+                first_name: urlParams.get("first_name"),
+                last_name: urlParams.get("last_name"),
+                username: urlParams.get("username"),
+                photo_url: urlParams.get("photo_url"),
+            };
+
+            // Display user profile
+            document.getElementById("photo").src = user.photo_url || "default_avatar.png";
+            document.getElementById("name").textContent = `${user.first_name} ${user.last_name || ""}`;
+            document.getElementById("username").textContent = `@${user.username || "No Username"}`;
+            document.getElementById("userId").textContent = user.id;
+
+            dashboard.style.display = "block";
+            loading.style.display = "none";
+        }
+
+        init();
+
+        // Show Telegram ID on button click
+        document.getElementById("showId").addEventListener("click", () => {
+            document.getElementById("telegramId").style.display = "block";
+        });
+
+        // Logout button
+        document.getElementById("logout").addEventListener("click", () => {
+            tg.close();
         });
     </script>
 </body>
